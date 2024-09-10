@@ -1,0 +1,55 @@
+services:
+  # コンテナの定義
+  php-app:
+    # コンテナ名
+    container_name: run-php-app
+    # ビルドするDockerfileのパス
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    # ポート
+    ports:
+      - 18080:80
+    # ローカルPCとコンテナ間でディレクトリを共有(バインド)
+    volumes:
+      - ./app/src:/var/www/html
+    # 利用するネットワーク
+    networks:
+      - php-mysql-networks
+    # 指定したサービスの後にコンテナを起動（DBを先に立ち上げる）
+    depends_on:
+      - php-db
+
+  php-db:
+    image: mysql:8.0
+    container_name: run-php-db
+    ports:
+      - 3307:3306
+    # 環境変数
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: test_db
+      MYSQL_USER: test
+      MYSQL_PASSWORD: test
+    volumes:
+      - ./mysql/initdb.d:/docker-entrypoint-initdb.d
+      - mysql-data:/var/lib/mysql
+    # コンテナ間で通信するためのネットワーク（同じに）
+    networks:
+      - php-mysql-networks
+
+  php-adminer:
+    image: adminer:4.8.1
+    container_name: run-php-adminer
+    ports:
+      - 8081:8080
+    networks:
+      - php-mysql-networks
+    depends_on:
+      - php-db
+
+volumes:
+  mysql-data:
+
+networks:
+  php-mysql-networks:
