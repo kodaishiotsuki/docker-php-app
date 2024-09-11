@@ -2,26 +2,11 @@
 
 declare(strict_types=1);
 
-$genderLists = [
-  "男性",
-  "女性",
-];
-$organizationLists = [
-  "営業部",
-  "人事部",
-  "総務部",
-  "システム開発1部",
-  "システム開発2部",
-  "システム開発3部",
-  "システム開発4部",
-  "システム開発5部",
-];
-$postLists = [
-  "部長",
-  "次長",
-  "課長",
-  "一般",
-];
+//データベース接続
+require_once dirname(__DIR__) . '/config/config.php';
+$pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8", DB_USER, DB_PASS);
+
+
 
 $id = '';
 $name = '';
@@ -38,12 +23,7 @@ $successMessage = '';
 $isEdit = false;
 $isSave = false;
 
-//データベース接続
-$username = "udemy_user";
-$password = "udemy_pass";
-$hostname = "db";
-$db = "udemy_db";
-$pdo = new PDO("mysql:host={$hostname};dbname={$db};charset=utf8", $username, $password);
+
 
 //POST通信
 if (mb_strtolower($_SERVER['REQUEST_METHOD']) === 'post') {
@@ -198,7 +178,7 @@ if (mb_strtolower($_SERVER['REQUEST_METHOD']) === 'post') {
     //POSTされた性別の入力チェック
     //以下のいずれかか
     //男性、女性
-    if (!in_array($gender, $genderLists)) {
+    if (!in_array($gender, GENDER_LISTS)) {
       $errorMessage .= '性別を選択してください。<br>';
     }
 
@@ -206,14 +186,14 @@ if (mb_strtolower($_SERVER['REQUEST_METHOD']) === 'post') {
     //以下のいずれかか
     //営業部、人事部、総務部、システム開発1部、システム開発2部、システム開発3部、
     //システム開発4部、システム開発5部
-    if (!in_array($organization, $organizationLists)) {
+    if (!in_array($organization, ORGANIZATION_LISTS)) {
       $errorMessage .= '部署を選択してください。<br>';
     }
 
     //POSTされた役職の入力チェック
     //以下のいずれかか
     //部長、次長、課長、一般
-    if (!in_array($post, $postLists)) {
+    if (!in_array($post, POST_LISTS)) {
       $errorMessage .= '役職を選択してください。<br>';
     }
 
@@ -423,7 +403,7 @@ if (mb_strtolower($_SERVER['REQUEST_METHOD']) === 'post') {
               <tr>
                 <td>性別</td>
                 <td>
-                  <?php foreach ($genderLists as $value) { ?>
+                  <?php foreach (GENDER_LISTS as $value) { ?>
                     <input type="radio" name="gender" value="<?php echo $value; ?>"
                       <?php echo $gender === $value ? "checked" : ""; ?>>
                     <?php echo $value; ?>
@@ -434,7 +414,7 @@ if (mb_strtolower($_SERVER['REQUEST_METHOD']) === 'post') {
                 <td>部署</td>
                 <td>
                   <select name="organization">
-                    <?php foreach ($organizationLists as $value) { ?>
+                    <?php foreach (ORGANIZATION_LISTS as $value) { ?>
                       <option value="<?php echo $value; ?>"
                         <?php echo $organization === $value ? "selected" : ""; ?>>
                         <?php echo $value; ?></option>
@@ -446,7 +426,7 @@ if (mb_strtolower($_SERVER['REQUEST_METHOD']) === 'post') {
                 <td>役職</td>
                 <td>
                   <select name="post">
-                    <?php foreach ($postLists as $value) { ?>
+                    <?php foreach (POST_LISTS as $value) { ?>
                       <option value="<?php echo $value; ?>"
                         <?php echo $post === $value ? "selected" : ""; ?>>
                         <?php echo $value; ?></option>
