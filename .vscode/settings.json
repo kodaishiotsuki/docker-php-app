@@ -1,3 +1,7 @@
 {
-  "hediet.vscode-drawio.theme": "Kennedy"
+  "hediet.vscode-drawio.theme": "Kennedy",
+  "editor.formatOnSave": true,
+  "[php]": {
+    "editor.defaultFormatter": "bmewburn.vscode-intelephense-client"
+  }
 }
