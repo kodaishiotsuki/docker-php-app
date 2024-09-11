@@ -2,8 +2,12 @@
 
 declare(strict_types=1);
 
-//データベース接続
+// 設定ファイル読み込み
 require_once dirname(__DIR__) . '/config/config.php';
+require_once dirname(__DIR__) . '/lib/validate.php';
+
+
+//データベース接続
 $pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8", DB_USER, DB_PASS);
 
 
@@ -48,9 +52,9 @@ if (mb_strtolower($_SERVER['REQUEST_METHOD']) === 'post') {
   //社員検索画面の編集ボタン押下
   if ($isEdit === true && $isSave === false) {
     //POSTされた社員番号の入力チェック
-    if ($id === '') { //空白でないか
+    if (!validateRequired($id)) { //空白でないか
       $errorMessage .= 'エラーが発生しました。もう一度やり直してください。<br>';
-    } else if (!preg_match('/\A[0-9]{6}\z/', $id)) { //6桁の数値か
+    } else if (!validateId($id)) { //6桁の数値か
       $errorMessage .= 'エラーが発生しました。もう一度やり直してください。<br>';
     } else {
       //存在する社員番号か
@@ -94,9 +98,9 @@ if (mb_strtolower($_SERVER['REQUEST_METHOD']) === 'post') {
   //登録ボタン押下
   if ($isSave === true) {
     //POSTされた社員番号の入力チェック
-    if ($id === '') { //空白でないか
+    if (!validateRequired($id)) { //空白でないか
       $errorMessage .= '社員番号を入力してください。<br>';
-    } else if (!preg_match('/\A[0-9]{6}\z/', $id)) { //6桁の数値か
+    } else if (!validateId($id)) { //6桁の数値か
       $errorMessage .= '社員番号は6桁の数値で入力してください。<br>';
     } else {
       //(新規登録時)存在しない社員番号か
@@ -116,39 +120,33 @@ if (mb_strtolower($_SERVER['REQUEST_METHOD']) === 'post') {
     }
 
     //POSTされた社員名の入力チェック
-    if ($name === '') { //空白でないか
+    if (!validateRequired($name)) { //空白でないか
       $errorMessage .= '社員名を入力してください。<br>';
-    } else if (mb_strlen($name) > 50) { //50文字以内か
+    } else if (!validateMaxLength($name, 50)) { //50文字以内か
       $errorMessage .= '社員名は50文字以内で入力してください。<br>';
     }
 
     //POSTされた社員名カナの入力チェック
-    if ($nameKana === '') { //空白でないか
+    if (!validateRequired($nameKana)) { //空白でないか
       $errorMessage .= '社員名カナを入力してください。<br>';
-    } else if (mb_strlen($nameKana) > 50) { //50文字以内か
+    } else if (!validateMaxLength($nameKana, 50)) { //50文字以内か
       $errorMessage .= '社員名カナは50文字以内で入力してください。<br>';
     }
 
     //POSTされた生年月日の入力チェック
-    if ($birthday === '') { //空白でないか
+    if (!validateRequired($birthday)) { //空白でないか
       $errorMessage .= '生年月日を入力してください。<br>';
     } else {
       // yyyy/mm/dd形式か
-      if (!preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}\z/', $birthday)) {
+      if (!validateDate($birthday)) {
         $errorMessage .= '生年月日を正しく入力してください。<br>';
-      } else {
-        // 存在する日付か
-        list($year, $month, $day) = explode('-', $birthday);
-        if (!checkdate((int)$month, (int)$day, (int)$year)) {
-          $errorMessage .= '生年月日を正しく入力してください。<br>';
-        }
       }
     }
 
     //POSTされた性別の入力チェック
     //以下のいずれかか
     //男性、女性
-    if (!in_array($gender, GENDER_LISTS)) {
+    if (!validateGender($gender)) {
       $errorMessage .= '性別を選択してください。<br>';
     }
 
@@ -156,47 +154,38 @@ if (mb_strtolower($_SERVER['REQUEST_METHOD']) === 'post') {
     //以下のいずれかか
     //営業部、人事部、総務部、システム開発1部、システム開発2部、システム開発3部、
     //システム開発4部、システム開発5部
-    if (!in_array($organization, ORGANIZATION_LISTS)) {
+    if (!validateOrganization($organization)) {
       $errorMessage .= '部署を選択してください。<br>';
     }
 
     //POSTされた役職の入力チェック
     //以下のいずれかか
     //部長、次長、課長、一般
-    if (!in_array($post, POST_LISTS)) {
+    if (!validatePost($post)) {
       $errorMessage .= '役職を選択してください。<br>';
     }
 
     //POSTされた入社年月日の入力チェック
-    if ($startDate === '') { //空白でないか
+    if (!validateRequired($startDate)) { //空白でないか
       $errorMessage .= '入社年月日を入力してください。<br>';
     } else {
       //yyyy/mm/dd形式か
-      if (!preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}\z/', $startDate)) {
+      if (!validateDate($startDate)) {
         $errorMessage .= '入社年月日を正しく入力してください。<br>';
-      } else {
-        //存在する日付か
-        list($year, $month, $day) = explode('-', $startDate);
-        if (!checkdate((int)$month, (int)$day, (int)$year)) {
-          $errorMessage .= '入社年月日を正しく入力してください。<br>';
-        }
       }
     }
 
     //POSTされた電話番号の入力チェック
-    if ($tel === '') { //空白でないか
+    if (!validateRequired($tel)) { //空白でないか
       $errorMessage .= '電話番号を入力してください。<br>';
-    } else if (!preg_match('/\A[0-9]{1,15}\z/', $tel)) { //15桁以内の数値か
+    } else if (!validateTel($tel)) { //15桁以内の数値か
       $errorMessage .= '電話番号は15桁以内の数値で入力してください。<br>';
     }
 
     //POSTされたメールアドレスの入力チェック
-    if ($mailAddress === '') { //空白でないか
+    if (!validateRequired($mailAddress)) { //空白でないか
       $errorMessage .= 'メールアドレスを入力してください。<br>';
-    } else if (!preg_match(
-      '/\A([a-z0-9\+_\-]+)(\.[a-z0-9\+_\-]+)*@([a-z0-9\-]+\.)+[a-z]{2,6}\z/iD',
-      $mailAddress
-    )) { //メールアドレス形式か
+    } else if (!validateMailAddress($mailAddress)) { //メールアドレス形式か
       $errorMessage .= 'メールアドレスを正しく入力してください。<br>';
     }
 

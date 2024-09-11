@@ -2,8 +2,12 @@
 
 declare(strict_types=1);
 
-//データベース接続
+// 設定ファイル読み込み
 require_once dirname(__DIR__) . '/config/config.php';
+require_once dirname(__DIR__) . '/lib/validate.php';
+
+
+//データベース接続
 $pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8", DB_USER, DB_PASS);
 
 
@@ -23,9 +27,9 @@ if (mb_strtolower($_SERVER['REQUEST_METHOD']) === 'post') {
   if ($isDelete === true) {
     //POSTされた社員番号の入力チェック
     $deleteId = isset($_POST['id']) ? $_POST['id'] : '';
-    if ($deleteId === '') { //空白でないか
+    if (!validateRequired($deleteId)) { //空白でないか
       $errorMessage .= '社員番号が不正です。<br>';
-    } else if (!preg_match('/\A[0-9]{6}\z/', $deleteId)) { //6桁の数値か
+    } else if (!validateId($deleteId)) { //6桁の数値か
       $errorMessage .= '社員番号が不正です。<br>';
     } else {
       //存在する社員番号か
@@ -69,19 +73,19 @@ if (isset($_GET['id']) && isset($_GET['name_kana'])) {
   $gender = isset($_GET['gender']) ? $_GET['gender'] : '';
 
   // 社員番号が入力されている
-  if ($id !== '') {
+  if (validateRequired($id)) {
     // 検索条件に社員番号を追加
     $whereSql .= 'AND id = :id ';
     $param['id'] = $id;
   }
   // 社員名カナが入力されている
-  if ($nameKana !== '') {
+  if (validateRequired($nameKana)) {
     // 検索条件に社員名カナを追加
     $whereSql .= 'AND name_kana LIKE :name_kana ';
     $param['name_kana'] = $nameKana . '%';
   }
   // 性別が入力されている
-  if ($gender !== '') {
+  if (validateRequired($gender)) {
     // 検索条件に性別を追加
     $whereSql .= 'AND gender = :gender ';
     $param['gender'] = $gender;
